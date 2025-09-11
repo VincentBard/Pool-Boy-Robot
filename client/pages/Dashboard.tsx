@@ -5,7 +5,9 @@ import { RobotControls } from "@/components/pool/RobotControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Wifi } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, Wifi, LifeBuoy } from "lucide-react";
+import { deployInflatable } from "@/components/pool/actions";
 
 export default function Dashboard() {
   return (
