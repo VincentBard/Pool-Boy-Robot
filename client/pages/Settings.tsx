@@ -9,7 +9,8 @@ export default function Settings() {
           <CardTitle>Settings</CardTitle>
         </CardHeader>
         <CardContent className="text-muted-foreground">
-          This page is ready for configuration controls. Ask to fill it in with camera URLs, robot endpoints, and alert thresholds.
+          This page is ready for configuration controls. Ask to fill it in with
+          camera URLs, robot endpoints, and alert thresholds.
         </CardContent>
       </Card>
     </AppShell>

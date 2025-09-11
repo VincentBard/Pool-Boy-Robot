@@ -28,7 +28,10 @@ export function BatteryIndicator() {
   }, [level]);
 
   return (
-    <div className="flex items-center gap-2 min-w-[160px]" aria-label="Robot battery level">
+    <div
+      className="flex items-center gap-2 min-w-[160px]"
+      aria-label="Robot battery level"
+    >
       {charging ? (
         <BatteryCharging className="h-4 w-4 text-primary" />
       ) : (
@@ -37,7 +40,14 @@ export function BatteryIndicator() {
       <div className="w-[120px]">
         <Progress value={level} className={cn("h-2", color)} />
       </div>
-      <span className={cn("text-xs tabular-nums", level <= 15 && "text-destructive font-semibold")}>{level}%</span>
+      <span
+        className={cn(
+          "text-xs tabular-nums",
+          level <= 15 && "text-destructive font-semibold",
+        )}
+      >
+        {level}%
+      </span>
     </div>
   );
 }
