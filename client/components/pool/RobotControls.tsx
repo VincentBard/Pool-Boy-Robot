@@ -13,11 +13,7 @@ import {
   Navigation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-function sendCommand(cmd: string, payload?: Record<string, unknown>) {
-  // Replace with API call to your robot controller if available.
-  console.info("robot", cmd, payload ?? {});
-}
+import { sendCommand } from "@/components/pool/actions";
 
 export function RobotControls() {
   const [autoMode, setAutoMode] = useState(false);
