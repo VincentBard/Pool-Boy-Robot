@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Bell, OctagonAlert } from "lucide-react";
+import { Bell, OctagonAlert, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { deployInflatable } from "@/components/pool/actions";
 
 export type DangerEvent = {
   id: string;
@@ -79,6 +80,13 @@ export function AlertCenter() {
                 >
                   {events[0].severity}
                 </Badge>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => deployInflatable(`${events[0].type} alert`)}
+                >
+                  <LifeBuoy className="mr-2 h-4 w-4" /> Deploy Inflatable
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
