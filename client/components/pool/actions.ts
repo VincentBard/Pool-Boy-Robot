@@ -10,6 +10,8 @@ export function deployInflatable(reason?: string) {
   const at = new Date().toISOString();
   sendCommand("deploy_inflatable", { reason: reason ?? "manual", at });
   toast.warning("Inflatable deployed", {
-    description: reason ? `${reason} • ${new Date(at).toLocaleTimeString()}` : `Manual deployment • ${new Date(at).toLocaleTimeString()}`,
+    description: reason
+      ? `${reason} • ${new Date(at).toLocaleTimeString()}`
+      : `Manual deployment • ${new Date(at).toLocaleTimeString()}`,
   });
 }

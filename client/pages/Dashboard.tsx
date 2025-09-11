@@ -27,7 +27,11 @@ export default function Dashboard() {
               Online
             </Badge>
             <Wifi className="h-4 w-4 text-emerald-500" />
-            <Button variant="destructive" size="sm" onClick={() => deployInflatable("manual from dashboard")}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => deployInflatable("manual from dashboard")}
+            >
               <LifeBuoy className="mr-2 h-4 w-4" /> Deploy Inflatable
             </Button>
           </div>
