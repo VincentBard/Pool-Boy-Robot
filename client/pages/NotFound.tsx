@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { AppShell } from "@/components/layout/AppShell";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,7 +13,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen">
+    <AppShell>
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">404</h1>
@@ -22,7 +23,7 @@ const NotFound = () => {
           </a>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 };
 
