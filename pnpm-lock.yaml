@@ -17,6 +17,10 @@ importers:
       zod:
         specifier: ^3.25.76
         version: 3.25.76
+      '@auth0/auth0-react':
+        specifier: ^2.5.0
+        version: 2.5.0
+      
     devDependencies:
       '@hookform/resolvers':
         specifier: ^5.2.1
