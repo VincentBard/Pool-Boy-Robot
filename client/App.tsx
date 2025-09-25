@@ -13,6 +13,9 @@ import NotFound from "./pages/NotFound";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import ProfileSetup from "./pages/ProfileSetup";
+import { RequireProfile } from "./components/RequireProfile";
+
 
 const queryClient = new QueryClient();
 
@@ -50,7 +53,9 @@ const AppRoutes = () => (
       path="/"
       element={
         <RequireAuth>
-          <Dashboard />
+          <RequireProfile>
+            <Dashboard />
+          </RequireProfile>
         </RequireAuth>
       }
     />
@@ -62,6 +67,8 @@ const AppRoutes = () => (
         </RequireAuth>
       }
     />
+    <Route path="/profile-setup" element={
+      <RequireAuth><ProfileSetup /></RequireAuth>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
