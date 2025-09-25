@@ -26,23 +26,7 @@ export function RobotControls() {
 
   const disabled = autoMode;
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (!autoMode) {
-        sendCommand("teleop", { direction, speed });
-      } else {
-        sendCommand("auto_roam", { speed });
-      }
-    }, 500);
-    return () => clearInterval(id);
-  }, [autoMode, direction, speed]);
-
-  const setDir = useCallback((x: number, y: number) => {
-    setDirection({
-      x: Math.max(-1, Math.min(1, x)),
-      y: Math.max(-1, Math.min(1, y)),
-    });
-  }, []);
+  
 
   const startHold = useCallback(
     (cmd: string, payload?: Record<string, unknown>) => {

@@ -18,28 +18,7 @@ export function AlertCenter() {
   const [events, setEvents] = useState<DangerEvent[]>([]);
   const [visible, setVisible] = useState(true);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (Math.random() < 0.08) {
-        const e: DangerEvent = {
-          id: `${Date.now()}`,
-          type: Math.random() < 0.5 ? "chemical" : "unknown",
-          message:
-            Math.random() < 0.5
-              ? "Abnormal chlorine variance detected near deep end."
-              : "Restricted motion detected. Possible obstruction.",
-          severity: Math.random() < 0.7 ? "medium" : "high",
-          at: new Date(),
-        };
-        setEvents((prev) => [e, ...prev].slice(0, 5));
-        toast.error(e.message, {
-          description: `${e.severity.toUpperCase()} • ${e.at.toLocaleTimeString()}`,
-        });
-      }
-    }, 7000);
-    return () => clearInterval(id);
-  }, []);
-
+  
   const hasCritical = events.some((e) => e.severity === "high");
 
   return (
