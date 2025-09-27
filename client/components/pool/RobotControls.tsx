@@ -1,21 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import {
-  Compass,
-  MoveUpRight,
-  Play,
-  Pause,
-  RotateCcw,
-  Navigation,
-} from "lucide-react";
+import { Compass, Play, Pause, RotateCcw, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sendCommand } from "@/components/pool/actions";
+import { useLiveKit } from "@/components/pool/LiveKitProvider";
+import { Room } from "livekit-client";
+
+function sendCommand(room: Room | null, cmd: string, payload?: Record<string, unknown>) {
+  if (!room) {
+    console.warn("⚠️ No LiveKit room available to send command");
+    return;
+  }
+  const message = JSON.stringify({ cmd, ...payload });
+  room.localParticipant.publishData(new TextEncoder().encode(message), {
+    reliable: true,
+  });
+  console.log("➡️ Sent command:", message);
+}
 
 export function RobotControls() {
+  const { room } = useLiveKit();
   const [autoMode, setAutoMode] = useState(false);
   const [speed, setSpeed] = useState(50);
   const [direction, setDirection] = useState<{ x: number; y: number }>({
@@ -26,26 +33,24 @@ export function RobotControls() {
 
   const disabled = autoMode;
 
-  
-
   const startHold = useCallback(
     (cmd: string, payload?: Record<string, unknown>) => {
+      if (!room) return;
       if (holdRef.current) return;
-      sendCommand(cmd, payload);
-      holdRef.current = window.setInterval(
-        () => sendCommand(cmd, payload),
-        250,
-      );
+      sendCommand(room, cmd, payload);
+      holdRef.current = window.setInterval(() => sendCommand(room, cmd, payload), 250);
     },
-    [],
+    [room]
   );
+
   const endHold = useCallback(() => {
+    if (!room) return;
     if (holdRef.current) {
       clearInterval(holdRef.current);
       holdRef.current = null;
-      sendCommand("stop");
+      sendCommand(room, "stop");
     }
-  }, []);
+  }, [room]);
 
   const dirButtons = useMemo(
     () => [
@@ -54,8 +59,13 @@ export function RobotControls() {
       { label: "Right", x: 1, y: 0 },
       { label: "Reverse", x: 0, y: 1 },
     ],
-    [],
+    []
   );
+
+  const setDir = (x: number, y: number) => {
+    setDirection({ x, y });
+    sendCommand(room, "set_direction", { x, y });
+  };
 
   return (
     <Card>
@@ -64,24 +74,19 @@ export function RobotControls() {
           <Navigation className="h-5 w-5 text-primary" /> Robot Control
         </CardTitle>
         <div className="flex items-center gap-3">
-          <Badge
-            variant={autoMode ? "secondary" : "default"}
-            className="uppercase"
-          >
+          <Badge variant={autoMode ? "secondary" : "default"} className="uppercase">
             {autoMode ? "Auto" : "Manual"}
           </Badge>
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Manual</span>
-            <Switch
-              checked={autoMode}
-              onCheckedChange={setAutoMode}
-              aria-label="Toggle auto roam"
-            />
+            <Switch checked={autoMode} onCheckedChange={setAutoMode} aria-label="Toggle auto roam" />
             <span className="text-muted-foreground">Auto</span>
           </div>
         </div>
       </CardHeader>
+
       <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Directional Buttons */}
         <div className="grid grid-cols-3 gap-2">
           <div />
           <Button
@@ -135,6 +140,8 @@ export function RobotControls() {
           </Button>
           <div />
         </div>
+
+        {/* Speed + Other Controls */}
         <div className="space-y-4">
           <div>
             <div className="mb-2 flex items-center justify-between text-sm">
@@ -143,13 +150,17 @@ export function RobotControls() {
             </div>
             <Slider
               value={[speed]}
-              onValueChange={([v]) => setSpeed(v)}
+              onValueChange={([v]) => {
+                setSpeed(v);
+                sendCommand(room, "set_speed", { value: v });
+              }}
               min={0}
               max={100}
               step={1}
               disabled={disabled}
             />
           </div>
+
           <div className="grid grid-cols-2 gap-2">
             {dirButtons.map((b) => (
               <Button
@@ -159,42 +170,33 @@ export function RobotControls() {
                 onClick={() => setDir(b.x, b.y)}
                 className={cn(
                   "justify-start",
-                  direction.x === b.x && direction.y === b.y && "bg-primary/10",
+                  direction.x === b.x && direction.y === b.y && "bg-primary/10"
                 )}
               >
                 {b.label}
               </Button>
             ))}
           </div>
+
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => sendCommand("calibrate")}
-            >
+            <Button variant="outline" size="sm" onClick={() => sendCommand(room, "calibrate")}>
               Calibrate
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => sendCommand("home")}
-            >
+            <Button variant="outline" size="sm" onClick={() => sendCommand(room, "home")}>
               Return Home
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => sendCommand("reset_sensors")}
-            >
+            <Button variant="outline" size="sm" onClick={() => sendCommand(room, "reset_sensors")}>
               Reset Sensors
             </Button>
           </div>
+
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Compass className="h-4 w-4" />
             <span>
               Direction: x {direction.x.toFixed(1)}, y {direction.y.toFixed(1)}
             </span>
           </div>
+
           <div className="flex items-center gap-2">
             {autoMode ? (
               <Button onClick={() => setAutoMode(false)}>
@@ -211,7 +213,7 @@ export function RobotControls() {
                 setAutoMode(false);
                 setSpeed(50);
                 setDirection({ x: 0, y: 0 });
-                sendCommand("reset_state");
+                sendCommand(room, "reset_state");
               }}
             >
               <RotateCcw className="mr-2 h-4 w-4" /> Reset

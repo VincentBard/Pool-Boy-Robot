@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import ProfileSetup from "./pages/ProfileSetup";
 import { RequireProfile } from "./components/RequireProfile";
+import { LiveKitProvider } from "@/components/pool/LivekitProvider";
 
 
 const queryClient = new QueryClient();
@@ -79,7 +80,10 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+      <LiveKitProvider>
         <AppRoutes />
+      </LiveKitProvider>
+        
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
