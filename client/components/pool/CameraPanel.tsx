@@ -13,7 +13,7 @@ import {
   RemoteVideoTrack,
   RoomEvent,
 } from "livekit-client";
-import { useLiveKit } from "@/components/pool/LiveKitProvider";
+import { useLiveKit } from "@/components/pool/LivekitProvider";
 
 // Map camera buttons to participant identities published by your Pis
 const SAMPLE_CAMERAS = [
