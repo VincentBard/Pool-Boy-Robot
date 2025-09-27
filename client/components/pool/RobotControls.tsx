@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Compass, Play, Pause, RotateCcw, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLiveKit } from "@/components/pool/LiveKitProvider";
+import { useLiveKit } from "@/components/pool/LivekitProvider";
 import { Room } from "livekit-client";
 
 function sendCommand(room: Room | null, cmd: string, payload?: Record<string, unknown>) {
