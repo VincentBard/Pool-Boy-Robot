@@ -70,13 +70,6 @@ export default function ProfileSetup() {
               required
             />
             <Input
-              name="jobTitle"
-              placeholder="Job Title"
-              value={form.jobTitle}
-              onChange={handleChange}
-              required
-            />
-            <Input
               name="phone"
               placeholder="Phone"
               value={form.phone}

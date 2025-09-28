@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Thermometer, Droplets, Waves, FlaskConical } from "lucide-react";
+import { Thermometer, Waves, FlaskConical } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function MetricCard({
   title,
@@ -54,64 +55,83 @@ function MetricCard({
 }
 
 export function PoolMetrics() {
-  const [temp, setTemp] = useState(27);
-  const [ph, setPh] = useState(7.3);
-  const [chl, setChl] = useState(2.1);
-  const [turb, setTurb] = useState(1.2);
+  const [temp, setTemp] = useState<number | null>(null);
+  const [ph, setPh] = useState<number | null>(null);
+  const [tds, setTds] = useState<number | null>(null);
+
+  // replace with your real deviceId
+  const deviceId = "68cc90c7ef0763dddf1a5e9d";
+  const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setTemp((v) => Math.max(20, Math.min(32, v + (Math.random() - 0.5))));
-      setPh((v) =>
-        Math.max(6.5, Math.min(8.5, v + (Math.random() - 0.5) * 0.05)),
-      );
-      setChl((v) =>
-        Math.max(0.5, Math.min(3.5, v + (Math.random() - 0.5) * 0.05)),
-      );
-      setTurb((v) =>
-        Math.max(0.3, Math.min(3, v + (Math.random() - 0.5) * 0.05)),
-      );
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
+    async function fetchLatest() {
+      try {
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: "https://pbrobot.onrender.com/",
+          },
+        });
+
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        console.log("Token payload:", payload);
+        const res = await fetch(
+          `https://pbrobot.onrender.com/api/readings/device/${deviceId}/latest`,
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok) throw new Error("Failed to fetch readings");
+        const data = await res.json();
+        setTemp(data.temperature ?? null);
+        setPh(data.pH ?? null);
+        setTds(data.tds ?? null);
+      } catch (err) {
+        console.error("Error fetching latest reading:", err);
+      }
+    }
+
+    fetchLatest();
+    const interval = setInterval(fetchLatest, 10000); // refresh every 10s
+    return () => clearInterval(interval);
+  }, [deviceId]);
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      <MetricCard
-        title="Temperature"
-        icon={Thermometer}
-        value={temp}
-        unit="°C"
-        min={20}
-        max={32}
-      />
-      <MetricCard
-        title="pH"
-        icon={FlaskConical}
-        value={ph}
-        unit=""
-        min={6.8}
-        max={8.2}
-        fine
-      />
-      <MetricCard
-        title="Chlorine"
-        icon={Droplets}
-        value={chl}
-        unit="ppm"
-        min={1}
-        max={3}
-        fine
-      />
-      <MetricCard
-        title="Turbidity"
-        icon={Waves}
-        value={turb}
-        unit="NTU"
-        min={0.5}
-        max={2.5}
-        fine
-      />
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      {temp !== null && (
+        <MetricCard
+          title="Temperature"
+          icon={Thermometer}
+          value={temp}
+          unit="°C"
+          min={20}
+          max={32}
+        />
+      )}
+      {ph !== null && (
+        <MetricCard
+          title="pH"
+          icon={FlaskConical}
+          value={ph}
+          unit=""
+          min={6.8}
+          max={8.2}
+          fine
+        />
+      )}
+      {tds !== null && (
+        <MetricCard
+          title="TDS"
+          icon={Waves}
+          value={tds}
+          unit="ppm"
+          min={100}
+          max={500}
+          fine
+        />
+      )}
     </div>
   );
 }
