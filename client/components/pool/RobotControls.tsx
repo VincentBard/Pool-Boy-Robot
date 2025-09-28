@@ -8,6 +8,7 @@ import { Compass, Play, Pause, RotateCcw, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveKit } from "@/components/pool/LivekitProvider";
 import { Room } from "livekit-client";
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Square } from "lucide-react";
 
 function sendCommand(room: Room | null, cmd: string, payload?: Record<string, unknown>) {
   if (!room) {
@@ -68,159 +69,125 @@ export function RobotControls() {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <Navigation className="h-5 w-5 text-primary" /> Robot Control
-        </CardTitle>
-        <div className="flex items-center gap-3">
-          <Badge variant={autoMode ? "secondary" : "default"} className="uppercase">
-            {autoMode ? "Auto" : "Manual"}
-          </Badge>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Manual</span>
-            <Switch checked={autoMode} onCheckedChange={setAutoMode} aria-label="Toggle auto roam" />
-            <span className="text-muted-foreground">Auto</span>
-          </div>
+    <Card className="h-full flex flex-col">
+  <CardHeader className="flex flex-row items-center justify-between">
+    <CardTitle className="flex items-center gap-2">
+      <Navigation className="h-5 w-5 text-primary" /> Robot Control
+    </CardTitle>
+    <div className="flex items-center gap-3">
+      <Badge variant={autoMode ? "secondary" : "default"} className="uppercase">
+        {autoMode ? "Auto" : "Manual"}
+      </Badge>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Manual</span>
+        <Switch
+          checked={autoMode}
+          onCheckedChange={setAutoMode}
+          aria-label="Toggle auto roam"
+        />
+        <span className="text-muted-foreground">Auto</span>
+      </div>
+    </div>
+  </CardHeader>
+
+  <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2 flex-1">
+    {/* Directional Buttons */}
+    <div className="grid grid-cols-3 gap-2 w-full max-w-xs mx-auto">
+      <div />
+      <Button
+        disabled={disabled}
+        variant="outline"
+        className="aspect-square flex items-center justify-center"
+        onMouseDown={() => startHold("forward")}
+        onMouseUp={endHold}
+        onMouseLeave={endHold}
+      >
+        <ArrowUp className="h-6 w-6" />
+      </Button>
+      <div />
+
+      <Button
+        disabled={disabled}
+        variant="outline"
+        className="aspect-square flex items-center justify-center"
+        onMouseDown={() => startHold("left")}
+        onMouseUp={endHold}
+        onMouseLeave={endHold}
+      >
+        <ArrowLeft className="h-6 w-6" />
+      </Button>
+      <Button
+        disabled={disabled}
+        variant="destructive"
+        className="aspect-square flex items-center justify-center"
+        onMouseDown={() => startHold("stop")}
+        onMouseUp={endHold}
+        onMouseLeave={endHold}
+      >
+        <Square className="h-6 w-6" />
+      </Button>
+      <Button
+        disabled={disabled}
+        variant="outline"
+        className="aspect-square flex items-center justify-center"
+        onMouseDown={() => startHold("right")}
+        onMouseUp={endHold}
+        onMouseLeave={endHold}
+      >
+        <ArrowRight className="h-6 w-6" />
+      </Button>
+
+      <div />
+      <Button
+        disabled={disabled}
+        variant="outline"
+        className="aspect-square flex items-center justify-center"
+        onMouseDown={() => startHold("reverse")}
+        onMouseUp={endHold}
+        onMouseLeave={endHold}
+      >
+        <ArrowDown className="h-6 w-6" />
+      </Button>
+      <div />
+    </div>
+
+    {/* Speed + Other Controls */}
+    <div className="space-y-4 flex flex-col justify-between">
+      <div>
+        <div className="mb-2 flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Speed</span>
+          <span className="tabular-nums">{speed}%</span>
         </div>
-      </CardHeader>
+        <Slider
+          value={[speed]}
+          onValueChange={([v]) => {
+            setSpeed(v);
+            sendCommand(room, "set_speed", { value: v });
+          }}
+          min={0}
+          max={100}
+          step={1}
+          disabled={disabled}
+        />
+      </div>
 
-      <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Directional Buttons */}
-        <div className="grid grid-cols-3 gap-2">
-          <div />
-          <Button
-            disabled={disabled}
-            variant="outline"
-            onMouseDown={() => startHold("forward")}
-            onMouseUp={endHold}
-            onMouseLeave={endHold}
-          >
-            Forward
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+        {autoMode ? (
+          <Button className="flex-1" onClick={() => setAutoMode(false)}>
+            <Pause className="mr-2 h-4 w-4" /> Pause Auto
           </Button>
-          <div />
-
+        ) : (
           <Button
-            disabled={disabled}
-            variant="outline"
-            onMouseDown={() => startHold("left")}
-            onMouseUp={endHold}
-            onMouseLeave={endHold}
+            variant="secondary"
+            className="flex-1"
+            onClick={() => setAutoMode(true)}
           >
-            Left
+            <Play className="mr-2 h-4 w-4" /> Start Auto Roam
           </Button>
-          <Button
-            disabled={disabled}
-            variant="destructive"
-            onMouseDown={() => startHold("stop")}
-            onMouseUp={endHold}
-            onMouseLeave={endHold}
-          >
-            Stop
-          </Button>
-          <Button
-            disabled={disabled}
-            variant="outline"
-            onMouseDown={() => startHold("right")}
-            onMouseUp={endHold}
-            onMouseLeave={endHold}
-          >
-            Right
-          </Button>
-
-          <div />
-          <Button
-            disabled={disabled}
-            variant="outline"
-            onMouseDown={() => startHold("reverse")}
-            onMouseUp={endHold}
-            onMouseLeave={endHold}
-          >
-            Reverse
-          </Button>
-          <div />
-        </div>
-
-        {/* Speed + Other Controls */}
-        <div className="space-y-4">
-          <div>
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Speed</span>
-              <span className="tabular-nums">{speed}%</span>
-            </div>
-            <Slider
-              value={[speed]}
-              onValueChange={([v]) => {
-                setSpeed(v);
-                sendCommand(room, "set_speed", { value: v });
-              }}
-              min={0}
-              max={100}
-              step={1}
-              disabled={disabled}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            {dirButtons.map((b) => (
-              <Button
-                key={b.label}
-                variant="ghost"
-                disabled={disabled}
-                onClick={() => setDir(b.x, b.y)}
-                className={cn(
-                  "justify-start",
-                  direction.x === b.x && direction.y === b.y && "bg-primary/10"
-                )}
-              >
-                {b.label}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => sendCommand(room, "calibrate")}>
-              Calibrate
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => sendCommand(room, "home")}>
-              Return Home
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => sendCommand(room, "reset_sensors")}>
-              Reset Sensors
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Compass className="h-4 w-4" />
-            <span>
-              Direction: x {direction.x.toFixed(1)}, y {direction.y.toFixed(1)}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {autoMode ? (
-              <Button onClick={() => setAutoMode(false)}>
-                <Pause className="mr-2 h-4 w-4" /> Pause Auto
-              </Button>
-            ) : (
-              <Button variant="secondary" onClick={() => setAutoMode(true)}>
-                <Play className="mr-2 h-4 w-4" /> Start Auto Roam
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setAutoMode(false);
-                setSpeed(50);
-                setDirection({ x: 0, y: 0 });
-                sendCommand(room, "reset_state");
-              }}
-            >
-              <RotateCcw className="mr-2 h-4 w-4" /> Reset
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        )}
+      </div>
+    </div>
+  </CardContent>
+</Card>
   );
 }

@@ -102,9 +102,7 @@ export function AppShell({
       </div>
     </header>
       <main className="container mx-auto px-4 py-6">{children}</main>
-      <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} AquaGuard. All rights reserved.
-      </footer>
+
     </div>
   );
 }

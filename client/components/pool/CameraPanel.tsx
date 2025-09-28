@@ -169,7 +169,7 @@ export function CameraPanel() {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden h-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="flex items-center gap-2">
@@ -205,34 +205,23 @@ export function CameraPanel() {
       </CardHeader>
 
       <CardContent className="pb-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div className="md:col-span-3 rounded-lg border bg-muted/20 p-2">
-            <AspectRatio ratio={16 / 9}>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="h-full w-full rounded-md object-cover"
-              />
-            </AspectRatio>
-          </div>
-          <div className="space-y-2">
-            {cams.map((c, i) => (
-              <button
-                key={c.id}
-                onClick={() => setActive(i)}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-md border p-2 text-left transition-colors",
-                  i === active ? "bg-primary/10 border-primary" : "hover:bg-accent"
+        <div className="grid grid-cols-1 md:grid-cols-4">
+          <div className="md:col-span-4 flex items-center justify-center">
+            <div className="rounded-lg border bg-muted/20 p-2 w-full md:w-3/4 flex items-center justify-center">
+              <AspectRatio ratio={16 / 9} className="w-full flex items-center justify-center">
+                {videoRef.current?.srcObject ? (
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="max-h-full max-w-full rounded-md object-contain"
+                  />
+                ) : (
+                  <span className="text-muted-foreground text-sm">No camera feed available ⚠️</span>
                 )}
-              >
-                <span className="text-sm font-medium">{c.name}</span>
-                <Badge variant={i === active ? "default" : "secondary"}>
-                  {i === active ? "Active" : "Idle"}
-                </Badge>
-              </button>
-            ))}
+              </AspectRatio>
+            </div>
           </div>
         </div>
       </CardContent>
