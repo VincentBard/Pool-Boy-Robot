@@ -14,12 +14,15 @@ import {
   RoomEvent,
 } from "livekit-client";
 import { useLiveKit } from "@/components/pool/LivekitProvider";
+import {  LocalVideoTrack, VideoTrack } from "livekit-client";
 
 // Map camera buttons to participant identities published by your Pis
 const SAMPLE_CAMERAS = [
   { id: 1, name: "Pi Camera 1", identity: "raspberry" },
   { id: 2, name: "Pi Camera 2", identity: "garage" },
 ];
+
+
 
 export function CameraPanel() {
   const [active, setActive] = useState(0);
@@ -69,6 +72,8 @@ export function CameraPanel() {
       }
     });
   };
+
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (!room) return;
@@ -208,19 +213,23 @@ export function CameraPanel() {
         <div className="grid grid-cols-1 md:grid-cols-4">
           <div className="md:col-span-4 flex items-center justify-center">
             <div className="rounded-lg border bg-muted/20 p-2 w-full md:w-3/4 flex items-center justify-center">
-              <AspectRatio ratio={16 / 9} className="w-full flex items-center justify-center">
-                {videoRef.current?.srcObject ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="max-h-full max-w-full rounded-md object-contain"
-                  />
-                ) : (
-                  <span className="text-muted-foreground text-sm">No camera feed available ⚠️</span>
+              <AspectRatio ratio={16 / 9} className="w-full flex items-center justify-center relative">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  className="h-full w-full rounded-md object-cover"
+                />
+                {!isPlaying && (
+                  <span className="absolute text-muted-foreground text-sm">
+                    No camera feed available ⚠️
+                  </span>
                 )}
               </AspectRatio>
+
             </div>
           </div>
         </div>
