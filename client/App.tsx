@@ -20,33 +20,7 @@ import { LiveKitProvider } from "@/components/pool/LivekitProvider";
 
 const queryClient = new QueryClient();
 
-// 🔑 Auto-login wrapper
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      loginWithRedirect({
-        appState: { returnTo: window.location.pathname },
-      });
-    }
-  }, [isLoading, isAuthenticated, loginWithRedirect]);
-
-  if (isLoading || !isAuthenticated) {
-    return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-neutral-900">
-        <div className="flex items-center gap-4 animate-pulse">
-          <Loader2 className="h-8 w-8 text-purple-600 animate-spin" />
-          <span className="text-lg font-medium text-muted-foreground">
-            Checking your session...
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-}
+import { RequireAuth } from "./components/RequireAuth";
 
 const AppRoutes = () => (
   <Routes>

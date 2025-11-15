@@ -1,0 +1,116 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "AquaGuard Control" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img [ref=e8]
+          - generic [ref=e12]: AquaGuard Control
+        - navigation [ref=e13]:
+          - link "Dashboard" [ref=e14] [cursor=pointer]:
+            - /url: /
+          - link "Settings" [ref=e15] [cursor=pointer]:
+            - /url: /settings
+        - generic [ref=e16]:
+          - button "Alerts" [ref=e18] [cursor=pointer]:
+            - img
+          - generic "Robot battery level" [ref=e19]:
+            - img [ref=e20]
+            - progressbar [ref=e23]
+            - generic [ref=e25]: 85%
+          - link "Contact support" [ref=e26] [cursor=pointer]:
+            - /url: mailto:vbard041@uottawa.ca
+            - img
+            - text: Support
+          - button "testuser@test.test" [ref=e27] [cursor=pointer]
+    - main [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - heading "Pool Control Board" [level=1] [ref=e32]
+            - paragraph [ref=e33]: Live feed, water quality, alerts, and robot control
+          - generic [ref=e34]:
+            - generic [ref=e35]: Online
+            - img [ref=e36]
+            - button "Deploy Inflatable" [ref=e40] [cursor=pointer]:
+              - img
+              - text: Deploy Inflatable
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - heading "Temperature" [level=3] [ref=e44]
+              - img [ref=e45]
+            - generic [ref=e47]:
+              - generic [ref=e48]:
+                - generic [ref=e49]: 24 °C
+                - generic [ref=e50]: 20°C – 32°C
+              - progressbar [ref=e51]
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - heading "pH" [level=3] [ref=e55]
+              - img [ref=e56]
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - generic [ref=e60]: "7.40"
+                - generic [ref=e61]: 6.8 – 8.2
+              - progressbar [ref=e62]
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - heading "TDS" [level=3] [ref=e66]
+              - img [ref=e67]
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - generic [ref=e73]: 400.00 ppm
+                - generic [ref=e74]: 100ppm – 500ppm
+              - progressbar [ref=e75]
+        - generic [ref=e77]:
+          - generic [ref=e79]:
+            - generic [ref=e80]:
+              - heading "Live Pool Cameras" [level=3] [ref=e82]:
+                - img [ref=e83]
+                - text: Live Pool Cameras
+              - generic [ref=e86]:
+                - button "Pi Camera 1" [ref=e87] [cursor=pointer]
+                - button "Pi Camera 2" [ref=e88] [cursor=pointer]
+                - button "Refresh feed" [ref=e89] [cursor=pointer]:
+                  - img
+            - generic [ref=e97]: No camera feed available ⚠️
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - heading "Robot Control" [level=3] [ref=e101]:
+                - img [ref=e102]
+                - text: Robot Control
+              - generic [ref=e104]:
+                - generic [ref=e105]: Manual
+                - generic [ref=e106]:
+                  - generic [ref=e107]: Manual
+                  - switch "Toggle auto roam" [ref=e108] [cursor=pointer]
+                  - generic [ref=e109]: Auto
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - button [ref=e113] [cursor=pointer]:
+                  - img
+                - button [ref=e115] [cursor=pointer]:
+                  - img
+                - button [ref=e116] [cursor=pointer]:
+                  - img
+                - button [ref=e117] [cursor=pointer]:
+                  - img
+                - button [ref=e119] [cursor=pointer]:
+                  - img
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - generic [ref=e123]:
+                    - generic [ref=e124]: Speed
+                    - generic [ref=e125]: 50%
+                  - slider [ref=e130]
+                - button "Start Auto Roam" [ref=e132] [cursor=pointer]:
+                  - img
+                  - text: Start Auto Roam
+```

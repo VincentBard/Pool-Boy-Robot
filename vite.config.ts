@@ -18,6 +18,14 @@ export default defineConfig(({ mode }) => ({
     outDir: "dist/spa",
   },
   plugins: [react()],
+  test: {
+    environment: "jsdom",      // required for React component tests
+    globals: true,             // allows using describe/it/expect without import
+    setupFiles: "./client/setupTest.ts", // optional but recommended
+    css: false,                // speed up tests (no CSS processing needed)
+    exclude: ["tests/**", "**/node_modules/**"],
+  },
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./client"),
