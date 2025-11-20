@@ -73,7 +73,7 @@ export function PoolMetrics() {
         });
 
         const payload = JSON.parse(atob(token.split(".")[1]));
-        console.log("Token payload:", payload);
+        
         const res = await fetch(
           `https://pbrobot.onrender.com/api/readings/device/${deviceId}/latest`,
           {
