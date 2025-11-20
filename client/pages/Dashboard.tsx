@@ -8,8 +8,10 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Shield, Wifi, LifeBuoy } from "lucide-react";
 import { deployInflatable } from "@/components/pool/actions";
+import { usePiConnection } from "@/hooks/usePiConnection";
 
 export default function Dashboard() {
+  const raspberryOnline = usePiConnection("raspberry");
   return (
     <AppShell>
       <div className="space-y-6">
@@ -23,14 +25,24 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="uppercase">
-              Online
+            <Badge
+              variant={raspberryOnline ? "secondary" : "destructive"}
+              className="uppercase"
+            >
+              {raspberryOnline ? "Online" : "Offline"}
             </Badge>
-            <Wifi className="h-4 w-4 text-emerald-500" />
+
+            {raspberryOnline ? (
+              <Wifi className="h-4 w-4 text-emerald-500" />
+            ) : (
+              <Wifi className="h-4 w-4 text-red-500 opacity-50" />
+            )}
+
             <Button
               variant="destructive"
               size="sm"
               onClick={() => deployInflatable("manual from dashboard")}
+              disabled={!raspberryOnline}
             >
               <LifeBuoy className="mr-2 h-4 w-4" /> Deploy Inflatable
             </Button>

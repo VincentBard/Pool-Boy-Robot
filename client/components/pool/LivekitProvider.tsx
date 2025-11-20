@@ -33,7 +33,7 @@ export function LiveKitProvider({ children }: { children: React.ReactNode }) {
         });
 
         newRoom.on(RoomEvent.Disconnected, () => {
-          console.log("❌ Disconnected from LiveKit");
+          
           setConnected(false);
         });
 
