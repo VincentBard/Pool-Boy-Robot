@@ -24,7 +24,7 @@ function sendCommand(room: Room | null, cmd: string, payload?: Record<string, un
 // ---------------------------------------------------------
 // Joystick Component (unchanged)
 // ---------------------------------------------------------
-const JOYSTICK_RATE = 5;
+const JOYSTICK_RATE = 1;
 let lastSend = 0;
 
 function throttleJoystickSend(callback: () => void) {
