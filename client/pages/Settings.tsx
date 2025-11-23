@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { useAuth0 } from "@auth0/auth0-react";
 
+
+
 export default function Settings() {
   const { getAccessTokenSilently } = useAuth0();
 
@@ -147,6 +149,7 @@ export default function Settings() {
             <SwitchItem label="Drowning Risk" value={settings.detectDrowningRisk} onChange={() => toggle("detectDrowningRisk")} />
             <SwitchItem label="Foreign Objects" value={settings.detectForeignObjects} onChange={() => toggle("detectForeignObjects")} />
             <SwitchItem label="Splash Intensity" value={settings.detectSplashing} onChange={() => toggle("detectSplashing")} />
+            
           </SettingsSection>
 
           <Separator />

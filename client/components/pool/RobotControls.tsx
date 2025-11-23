@@ -7,6 +7,25 @@ import { Navigation, Play, Pause, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveKit } from "@/components/pool/LivekitProvider";
 import { Room } from "livekit-client";
+import { useAuth0 } from "@auth0/auth0-react";
+
+async function updateSettings(token: string, updates: Record<string, unknown>) {
+  const res = await fetch("https://pbrobot.onrender.com/api/settings", {   // 🔥 UPDATED URL
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(updates),
+  });
+
+  if (!res.ok) {
+    console.error("❌ Failed to update user settings", await res.text());
+    throw new Error("Failed to update settings");
+  }
+
+  return res.json();
+}
 
 // ---------------------------------------------------------
 // LiveKit Command Sender
@@ -34,6 +53,7 @@ function throttleJoystickSend(callback: () => void) {
     callback();
   }
 }
+
 
 function Joystick({
   onMove,
@@ -122,8 +142,27 @@ function Joystick({
 export function RobotControls() {
   const { room } = useLiveKit();
   const [autoMode, setAutoMode] = useState(false);
+    const { getAccessTokenSilently } = useAuth0();     // 🔥 NEW
 
-  const endMotion = () => sendCommand(room, "stop");
+
+  const endMotion = () => sendCommand(room, "stop")
+  
+    const handleAutoModeChange = async (value: boolean) => {
+    setAutoMode(value); // instantly update UI
+
+    try {
+      const token = await getAccessTokenSilently();
+
+      await updateSettings(token, {
+        autoRoamOn: value,        // <--- stored in MongoDB
+        updatedAt: Date.now(),
+      });
+
+      console.log("✅ Auto mode saved:", value);
+    } catch (err) {
+      console.error("❌ Failed to update auto mode:", err);
+    }
+  };;
 
   return (
     <Card className="h-full flex flex-col overflow-hidden">
@@ -139,7 +178,10 @@ export function RobotControls() {
 
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Manual</span>
-            <Switch checked={autoMode} onCheckedChange={setAutoMode} />
+
+            {/* 🔥 UPDATED SWITCH */}
+            <Switch checked={autoMode} onCheckedChange={handleAutoModeChange} />
+
             <span className="text-muted-foreground">Auto</span>
           </div>
         </div>
