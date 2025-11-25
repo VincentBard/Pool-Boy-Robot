@@ -164,6 +164,19 @@ export function RobotControls() {
     }
   };;
 
+  useEffect(() => {
+  async function loadSettings() {
+    const token = await getAccessTokenSilently();
+    const res = await fetch("https://pbrobot.onrender.com/api/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json();
+    setAutoMode(data.autoRoamOn ?? false);
+  }
+  loadSettings();
+  }, []);
+
   return (
     <Card className="h-full flex flex-col overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
