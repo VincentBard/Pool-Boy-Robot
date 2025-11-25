@@ -4,6 +4,77 @@ import { Thermometer, Waves, FlaskConical } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+
+function Sparkline({ data, dataKey, color }: {
+  data: any[];
+  dataKey: string;
+  color: string;
+}) {
+  return (
+    <div className="h-12 w-full mt-3">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <XAxis dataKey="time" hide />   {/* 👈 This is the missing piece */}
+
+          <Tooltip
+            labelFormatter={(t) => {
+              if (!t || isNaN(t)) return "No timestamp";
+              return new Date(t).toLocaleString();
+            }}
+            formatter={(value: any, name: string) => [`${value}`, name]}
+            contentStyle={{
+              backgroundColor: "white",
+              borderRadius: "6px",
+              border: "1px solid #e5e7eb",
+              fontSize: "0.75rem",
+            }}
+          />
+
+          <Line
+            type="monotone"
+            dataKey={dataKey}
+            stroke={color}
+            strokeWidth={2}
+            dot={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+
+
+function SkeletonCard() {
+  return (
+    <Card className="animate-pulse">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="h-4 w-24 bg-gray-300/50 rounded" />
+        <div className="h-4 w-6 bg-gray-300/50 rounded" />
+      </CardHeader>
+
+      <CardContent>
+        <div className="h-8 w-20 bg-gray-300/50 rounded mb-4" />
+        <div className="h-3 w-full bg-gray-300/50 rounded mb-4" />
+
+        <div className="h-12 w-full bg-gray-300/50 rounded" />
+      </CardContent>
+    </Card>
+  );
+}
+
+
+
 function PlaneDial({ pitch, roll }: { pitch: number; roll: number }) {
   // Soften the pitch movement dramatically
   const clampedPitch = Math.max(-30, Math.min(30, pitch));
@@ -85,6 +156,9 @@ function MetricCard({
   min,
   max,
   fine,
+  history,
+  dataKey,
+  color,
 }: {
   title: string;
   icon: any;
@@ -93,9 +167,13 @@ function MetricCard({
   min: number;
   max: number;
   fine?: boolean;
+  history: any[];
+  dataKey: string;
+  color: string;
 }) {
   const pct = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
   const ok = pct > 20 && pct < 80;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -104,7 +182,9 @@ function MetricCard({
         </CardTitle>
         <Icon className="h-4 w-4 text-primary" />
       </CardHeader>
+
       <CardContent>
+        {/* Value Display */}
         <div className="mb-2 flex items-end justify-between">
           <div className="text-2xl font-semibold tabular-nums">
             {fine ? value.toFixed(2) : Math.round(value)}{" "}
@@ -118,16 +198,23 @@ function MetricCard({
             {unit}
           </span>
         </div>
+
+        {/* Progress Bar */}
         <Progress
           value={pct}
           className={ok ? "bg-emerald-500" : "bg-amber-500"}
         />
+
+        {/* NEW: Sparkline Graph */}
+        <Sparkline data={history} dataKey={dataKey} color={color} />
       </CardContent>
     </Card>
   );
 }
 
+
 export function PoolMetrics() {
+  const [readings, setReadings] = useState<any[]>([]);
   const [temp, setTemp] = useState<number | null>(null);
   const [ph, setPh] = useState<number | null>(null);
   const [tds, setTds] = useState<number | null>(null);
@@ -138,16 +225,14 @@ export function PoolMetrics() {
   const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    async function fetchLatest() {
+    async function fetchHistory() {
       try {
         const token = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: "https://pbrobot.onrender.com/",
-          },
+          authorizationParams: { audience: "https://pbrobot.onrender.com/" },
         });
 
         const res = await fetch(
-          `https://pbrobot.onrender.com/api/readings/device/${deviceId}/latest`,
+          `https://pbrobot.onrender.com/api/readings/device/${deviceId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -159,39 +244,109 @@ export function PoolMetrics() {
         if (!res.ok) throw new Error("Failed to fetch readings");
         const data = await res.json();
 
-        setTemp(data.temperature ?? null);
-        setPh(data.pH ?? null);
-        setTds(data.tds ?? null);
-        setRoll(data.roll ?? null);
-        setPitch(data.pitch ?? null);
+        // Sort newest → oldest (backend already does this)
+        const sorted = data.sort(
+          (a: any, b: any) =>
+            new Date(a.createdAt).getTime() -
+            new Date(b.createdAt).getTime()
+        );
+
+        setReadings(
+          sorted.map((r: any) => {
+            const ts = r.createdAt ? new Date(r.createdAt).getTime() : null;
+
+            return {
+              time: ts,
+              temperature: r.temperature ?? null,
+              pH: r.pH ?? null,
+              tds: r.tds ?? null,
+            };
+          })
+        );
+
+
+        // Set the latest values
+        const latest = sorted[sorted.length - 1];
+        setTemp(latest?.temperature ?? null);
+        setPh(latest?.pH ?? null);
+        setTds(latest?.tds ?? null);
+        setRoll(latest?.roll ?? null);
+        setPitch(latest?.pitch ?? null);
 
       } catch (err) {
-        console.error("Error fetching latest reading:", err);
+        console.error("Error fetching readings:", err);
       }
     }
 
-    fetchLatest();
-    const interval = setInterval(fetchLatest, 10000);
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 10000);
     return () => clearInterval(interval);
   }, [deviceId]);
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {temp !== null && (
-        <MetricCard title="Temperature" icon={Thermometer} value={temp} unit="°C" min={20} max={32} />
-      )}
-      {ph !== null && (
-        <MetricCard title="pH" icon={FlaskConical} value={ph} unit="" min={6.8} max={8.2} fine />
-      )}
-      {tds !== null && (
-        <MetricCard title="TDS" icon={Waves} value={tds} unit="ppm" min={100} max={500} fine />
+      {/* Show skeletons if still loading */}
+      {readings.length === 0 && (
+        <>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </>
       )}
 
-     
+      {/* Real metric cards once data loads */}
+      {readings.length > 0 && temp !== null && (
+        <MetricCard
+          title="Temperature"
+          icon={Thermometer}
+          value={temp}
+          unit="°C"
+          min={20}
+          max={32}
+          fine={false}
+          history={readings}
+          dataKey="temperature"
+          color="#3b82f6"
+        />
+      )}
 
-      {pitch !== null && roll !== null && (
+      {readings.length > 0 && ph !== null && (
+        <MetricCard
+          title="pH"
+          icon={FlaskConical}
+          value={ph}
+          unit=""
+          min={6.8}
+          max={8.2}
+          fine
+          history={readings}
+          dataKey="pH"
+          color="#10b981"
+        />
+      )}
+
+      {readings.length > 0 && tds !== null && (
+        <MetricCard
+          title="TDS"
+          icon={Waves}
+          value={tds}
+          unit="ppm"
+          min={100}
+          max={500}
+          fine
+          history={readings}
+          dataKey="tds"
+          color="#f59e0b"
+        />
+      )}
+
+      {readings.length > 0 && pitch !== null && roll !== null && (
         <PlaneDial pitch={pitch} roll={roll} />
       )}
     </div>
   );
+
+
 }
+
