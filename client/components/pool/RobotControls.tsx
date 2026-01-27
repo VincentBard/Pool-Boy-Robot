@@ -1,11 +1,44 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Navigation, Play, Pause, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useArduino } from "@/hooks/useArduino";
+import { useLiveKit } from "@/components/pool/LivekitProvider";
+import { Room } from "livekit-client";
+import { useAuth0 } from "@auth0/auth0-react";
+
+async function updateSettings(token: string, updates: Record<string, unknown>) {
+  const res = await fetch("https://pbrobot.onrender.com/api/settings", {   // 🔥 UPDATED URL
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(updates),
+  });
+
+  if (!res.ok) {
+    console.error("❌ Failed to update user settings", await res.text());
+    throw new Error("Failed to update settings");
+  }
+
+  return res.json();
+}
+
+// ---------------------------------------------------------
+// LiveKit Command Sender
+// ---------------------------------------------------------
+function sendCommand(room: Room | null, cmd: string, payload?: Record<string, unknown>) {
+  if (!room) {
+    console.warn("⚠️ No LiveKit room available to send command");
+    return;
+  }
+  const message = JSON.stringify({ cmd, ...payload });
+  room.localParticipant.publishData(new TextEncoder().encode(message), { reliable: true });
+  console.log("➡️ Sent command:", message);
+}
 
 // ---------------------------------------------------------
 // Joystick Component (unchanged)
@@ -107,21 +140,42 @@ function Joystick({
 // MAIN ROBOT CONTROLS UI
 // ---------------------------------------------------------
 export function RobotControls() {
-  const { connected, sendCommand } = useArduino();
+  const { room } = useLiveKit();
   const [autoMode, setAutoMode] = useState(false);
+    const { getAccessTokenSilently } = useAuth0();     // 🔥 NEW
 
-  const endMotion = useCallback(() => {
-    sendCommand("stop");
-  }, [sendCommand]);
 
-  const handleMove = useCallback((x: number, y: number) => {
-    sendCommand("set_direction", { x, y });
-  }, [sendCommand]);
+  const endMotion = () => sendCommand(room, "stop")
+  
+    const handleAutoModeChange = async (value: boolean) => {
+    setAutoMode(value); // instantly update UI
 
-  const handleAutoModeChange = (value: boolean) => {
-    setAutoMode(value);
-    sendCommand(value ? "auto_on" : "auto_off");
-  };
+    try {
+      const token = await getAccessTokenSilently();
+
+      await updateSettings(token, {
+        autoRoamOn: value,        // <--- stored in MongoDB
+        updatedAt: Date.now(),
+      });
+
+      console.log("✅ Auto mode saved:", value);
+    } catch (err) {
+      console.error("❌ Failed to update auto mode:", err);
+    }
+  };;
+
+  useEffect(() => {
+  async function loadSettings() {
+    const token = await getAccessTokenSilently();
+    const res = await fetch("https://pbrobot.onrender.com/api/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json();
+    setAutoMode(data.autoRoamOn ?? false);
+  }
+  loadSettings();
+  }, []);
 
   return (
     <Card className="h-full flex flex-col overflow-hidden">
@@ -131,8 +185,8 @@ export function RobotControls() {
         </CardTitle>
 
         <div className="flex items-center gap-3">
-          <Badge variant={connected ? "default" : "destructive"} className="uppercase">
-            {connected ? (autoMode ? "Auto" : "Manual") : "Disconnected"}
+          <Badge variant={autoMode ? "secondary" : "default"} className="uppercase">
+            {autoMode ? "Auto" : "Manual"}
           </Badge>
 
           <div className="flex items-center gap-2 text-sm">
@@ -152,7 +206,7 @@ export function RobotControls() {
         <div className="flex flex-col items-center gap-4">
           <Joystick
             disabled={autoMode}
-            onMove={handleMove}
+            onMove={(x, y) => sendCommand(room, "set_direction", { x, y })}
             onEnd={endMotion}
           />
           <p className="text-sm text-muted-foreground">Drag to move the robot</p>
@@ -161,11 +215,11 @@ export function RobotControls() {
         {/* AUTO / STOP CONTROLS */}
         <div className="flex flex-col gap-4 w-full max-w-xs">
           {!autoMode ? (
-            <Button size="lg" className="w-full" onClick={() => handleAutoModeChange(true)}>
+            <Button size="lg" className="w-full" onClick={() => setAutoMode(true)}>
               <Play className="h-4 w-4 mr-2" /> Start Auto Roam
             </Button>
           ) : (
-            <Button size="lg" variant="secondary" className="w-full" onClick={() => handleAutoModeChange(false)}>
+            <Button size="lg" variant="secondary" className="w-full" onClick={() => setAutoMode(false)}>
               <Pause className="h-4 w-4 mr-2" /> Pause Auto
             </Button>
           )}
@@ -173,7 +227,7 @@ export function RobotControls() {
           <Button
             size="lg"
             variant="outline"
-            onClick={() => sendCommand("stop")}
+            onClick={() => sendCommand(room, "stop")}
             className="w-full"
           >
             <Square className="h-4 w-4 mr-2" /> Stop

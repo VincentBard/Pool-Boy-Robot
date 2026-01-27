@@ -106,7 +106,7 @@ export function AlertCenter() {
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 10_000);
     return () => clearInterval(interval);
-  }, [getAccessTokenSilently]);
+  }, []);
 
   // NEW TOAST LOGIC — ONLY toast for <60 seconds old
   // Toast visibility effect
