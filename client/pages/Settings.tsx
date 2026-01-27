@@ -68,7 +68,7 @@ export default function Settings() {
     }
 
     loadSettings();
-  }, []);
+  }, [getAccessTokenSilently]);
 
   if (!settings) {
     return (

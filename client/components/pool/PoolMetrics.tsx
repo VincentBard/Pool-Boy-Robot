@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Thermometer, Waves, FlaskConical } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useArduino } from "@/hooks/useArduino";
 
 
 import {
@@ -214,74 +213,20 @@ function MetricCard({
 
 
 export function PoolMetrics() {
-  const [readings, setReadings] = useState<any[]>([]);
-  const [temp, setTemp] = useState<number | null>(null);
-  const [ph, setPh] = useState<number | null>(null);
-  const [tds, setTds] = useState<number | null>(null);
-  const [roll, setRoll] = useState<number | null>(null);
-  const [pitch, setPitch] = useState<number | null>(null);
+  const { sensorData, history, connected } = useArduino();
 
-  const deviceId = "68cc90c7ef0763dddf1a5e9d";
-  const { getAccessTokenSilently } = useAuth0();
+  const temp = sensorData.temperature ?? null;
+  const ph = sensorData.pH ?? null;
+  const tds = sensorData.tds ?? null;
+  const roll = sensorData.roll ?? null;
+  const pitch = sensorData.pitch ?? null;
 
-  useEffect(() => {
-    async function fetchHistory() {
-      try {
-        const token = await getAccessTokenSilently({
-          authorizationParams: { audience: "https://pbrobot.onrender.com/" },
-        });
-
-        const res = await fetch(
-          `https://pbrobot.onrender.com/api/readings/device/${deviceId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!res.ok) throw new Error("Failed to fetch readings");
-        const data = await res.json();
-
-        // Sort newest → oldest (backend already does this)
-        const sorted = data.sort(
-          (a: any, b: any) =>
-            new Date(a.createdAt).getTime() -
-            new Date(b.createdAt).getTime()
-        );
-
-        setReadings(
-          sorted.map((r: any) => {
-            const ts = r.createdAt ? new Date(r.createdAt).getTime() : null;
-
-            return {
-              time: ts,
-              temperature: r.temperature ?? null,
-              pH: r.pH ?? null,
-              tds: r.tds ?? null,
-            };
-          })
-        );
-
-
-        // Set the latest values
-        const latest = sorted[sorted.length - 1];
-        setTemp(latest?.temperature ?? null);
-        setPh(latest?.pH ?? null);
-        setTds(latest?.tds ?? null);
-        setRoll(latest?.roll ?? null);
-        setPitch(latest?.pitch ?? null);
-
-      } catch (err) {
-        console.error("Error fetching readings:", err);
-      }
-    }
-
-    fetchHistory();
-    const interval = setInterval(fetchHistory, 10000);
-    return () => clearInterval(interval);
-  }, [deviceId]);
+  const readings = history.map((r) => ({
+    time: r.time,
+    temperature: r.temperature ?? null,
+    pH: r.pH ?? null,
+    tds: r.tds ?? null,
+  }));
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

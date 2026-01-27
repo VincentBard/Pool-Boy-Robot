@@ -73,7 +73,7 @@ export function CameraPanel() {
       }
     }
     load();
-  }, [active]);
+  }, [active, getAccessTokenSilently]);
 
   useEffect(() => {
     if (!room || !videoRef.current) return;
@@ -227,8 +227,10 @@ export function CameraPanel() {
   // Drawing
   // -------------------------------------
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const draw = (pts: any[], stroke: string, fill: string, nodeColor: string) => {
@@ -269,7 +271,10 @@ export function CameraPanel() {
     if (!room) return;
 
     if (isPlaying) {
-      if (noFeedTimer.current) clearTimeout(noFeedTimer.current);
+      if (noFeedTimer.current) {
+        clearTimeout(noFeedTimer.current);
+        noFeedTimer.current = null;
+      }
     } else {
       if (!noFeedTimer.current) {
         noFeedTimer.current = setTimeout(() => {
@@ -278,7 +283,7 @@ export function CameraPanel() {
         }, 3000);
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, room]);
 
   const detachCurrent = () => {
     if (currentVideoTrack.current && videoRef.current) {

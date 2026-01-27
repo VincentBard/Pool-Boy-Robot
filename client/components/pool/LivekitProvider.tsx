@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Room, RoomEvent } from "livekit-client";
 
 type LiveKitContextType = {
@@ -15,17 +15,26 @@ const LiveKitContext = createContext<LiveKitContextType>({
 export function LiveKitProvider({ children }: { children: React.ReactNode }) {
   const [room, setRoom] = useState<Room | null>(null);
   const [connected, setConnected] = useState(false);
+  const roomRef = useRef<Room | null>(null);
 
   useEffect(() => {
     const init = async () => {
       try {
-        // ✅ fetch token once
         const resp = await fetch(
           "https://pbrobot.onrender.com/getToken?identity=viewer&roomName=pool"
         );
-        const { token } = await resp.json();
+
+        if (!resp.ok) {
+          throw new Error("Failed to fetch LiveKit token");
+        }
+
+        const data = await resp.json();
+        if (!data.token) {
+          throw new Error("No token in response");
+        }
 
         const newRoom = new Room();
+        roomRef.current = newRoom;
 
         newRoom.on(RoomEvent.Connected, () => {
           console.log("✅ Connected to LiveKit");
@@ -33,13 +42,12 @@ export function LiveKitProvider({ children }: { children: React.ReactNode }) {
         });
 
         newRoom.on(RoomEvent.Disconnected, () => {
-          
           setConnected(false);
         });
 
         await newRoom.connect(
           "wss://pbrobot-ir91vwzj.livekit.cloud",
-          token
+          data.token
         );
 
         setRoom(newRoom);
@@ -51,7 +59,8 @@ export function LiveKitProvider({ children }: { children: React.ReactNode }) {
     init();
 
     return () => {
-      room?.disconnect();
+      roomRef.current?.disconnect();
+      roomRef.current = null;
     };
   }, []);
 
