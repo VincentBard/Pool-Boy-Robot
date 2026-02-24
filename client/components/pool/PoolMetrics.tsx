@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Thermometer, Waves, FlaskConical } from "lucide-react";
+import { Thermometer, Waves, FlaskConical, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+
 
 function Sparkline({ data, dataKey, color }: {
   data: any[];
@@ -220,6 +221,7 @@ export function PoolMetrics() {
   const [tds, setTds] = useState<number | null>(null);
   const [roll, setRoll] = useState<number | null>(null);
   const [pitch, setPitch] = useState<number | null>(null);
+  const [outtemp, setOuttemp] = useState<number | null>(null);
 
   const deviceId = "68cc90c7ef0763dddf1a5e9d";
   const { getAccessTokenSilently } = useAuth0();
@@ -260,6 +262,7 @@ export function PoolMetrics() {
               temperature: r.temperature ?? null,
               pH: r.pH ?? null,
               tds: r.tds ?? null,
+              outtemp: r.outtemp ?? null,   
             };
           })
         );
@@ -268,6 +271,7 @@ export function PoolMetrics() {
         // Set the latest values
         const latest = sorted[sorted.length - 1];
         setTemp(latest?.temperature ?? null);
+        setOuttemp(latest?.outtemp ?? null);
         setPh(latest?.pH ?? null);
         setTds(latest?.tds ?? null);
         setRoll(latest?.roll ?? null);
@@ -284,7 +288,7 @@ export function PoolMetrics() {
   }, [deviceId]);
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
       {/* Show skeletons if still loading */}
       {readings.length === 0 && (
         <>
@@ -298,7 +302,7 @@ export function PoolMetrics() {
       {/* Real metric cards once data loads */}
       {readings.length > 0 && temp !== null && (
         <MetricCard
-          title="Temperature"
+          title="Pool Temperature"
           icon={Thermometer}
           value={temp}
           unit="°C"
@@ -308,6 +312,21 @@ export function PoolMetrics() {
           history={readings}
           dataKey="temperature"
           color="#3b82f6"
+        />
+      )}
+
+      {readings.length > 0 && outtemp !== null && (
+        <MetricCard
+          title="Outside Temperature"
+          icon={Sun}
+          value={outtemp}
+          unit="°C"
+          min={-20}
+          max={40}
+          fine={false}
+          history={readings}
+          dataKey="outtemp"
+          color="#ef4444"
         />
       )}
 
